@@ -23,6 +23,7 @@ class Board:
         self.current_player_sign = self.x
         self.winner = None
         self.ended = False
+        self.invalid_moves = 0
         self.s = str(self.reset().flatten())
 
     def reset(self):
@@ -33,7 +34,11 @@ class Board:
         return self.state
 
     def game_over(self):
-        # check rows
+        if self.ended:
+            self.winner = self.x if self.current_player_sign == self.o else self.o
+            return True
+
+        # rows
         for i in range(LENGTH):
             for player in (self.x, self.o):
                 if self.state[i].sum() == player * 3:
@@ -41,7 +46,7 @@ class Board:
                     self.ended = True
                     return True
 
-        # check columns
+        # columns
         for j in range(LENGTH):
             for player in (self.x, self.o):
                 if self.state[:, j].sum() == player * 3:
@@ -49,14 +54,14 @@ class Board:
                     self.ended = True
                     return True
 
-        # check diagonals
+        # diagonals
         for player in (self.x, self.o):
             if self.state.trace() == player * 3 or np.fliplr(self.state).trace() == player * 3:
                 self.winner = player
                 self.ended = True
                 return True
 
-        # check if draw
+        # draw
         if np.all((self.state == 0) == False):
             self.winner = None
             self.ended = True
@@ -66,7 +71,10 @@ class Board:
 
     def move(self, action):
         if self.state[action] != 0:
-            return 0  # Invalid move
+            # self.current_player_sign = self.x if self.current_player_sign == self.o else self.o
+            self.invalid_moves += 1
+            self.ended = True
+            return -10  # Invalid move
 
         self.state[action] = self.current_player_sign
         reward = 0
@@ -74,6 +82,8 @@ class Board:
         if self.game_over():
             if self.winner == self.current_player_sign:
                 reward = 1
+            elif self.winner is None:
+                reward = 0
             else:
                 reward = -1
         else:

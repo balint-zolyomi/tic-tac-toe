@@ -3,8 +3,8 @@ import numpy as np
 
 import environment
 
-GAMMA = 1
-ALPHA = 0.01
+GAMMA = 0.8
+ALPHA = 0.1
 
 
 def max_dict(d):
@@ -13,14 +13,15 @@ def max_dict(d):
     return random.choice(max_keys), max_val
 
 
-def epsilon_greedy(Q, s, eps=0.2):
+def epsilon_greedy(Q, s, eps=0.1):
     if np.random.random() < eps:
-        return random.choice(environment.ALL_POSSIBLE_ACTIONS)
+        while True:
+            a = random.choice(environment.ALL_POSSIBLE_ACTIONS)
+            if Q[s][a] != -10:
+                return a
     else:
-        a_opt = max_dict(Q[s])[0]
-        # print("Q", Q)
-        # print("a_opt", a_opt)
-        return a_opt
+        a = max_dict(Q[s])[0]
+        return a
 
 
 class Player:
@@ -33,9 +34,9 @@ class Player:
         s = str(self.board.state.flatten())
 
         if s not in self.Q:
-            self.Q[s] = {a: 0 for a in self.board.actions}
+            self.Q[s] = {a: 0 if self.board.state[a] == 0 else -10 for a in self.board.actions}
 
-        a = epsilon_greedy(self.Q, self.board.s)
+        a = epsilon_greedy(self.Q, s)
         r = self.board.move(a)
         s2 = str(self.board.state.flatten())
 
@@ -46,6 +47,8 @@ class Player:
 
         maxQ = max_dict(self.Q[s2])[1]
         self.Q[s][a] = self.Q[s][a] + ALPHA * (r + GAMMA * maxQ - self.Q[s][a])
+
+        return r
 
     def print_policy(self):
         policy = {}
