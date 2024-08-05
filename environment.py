@@ -20,22 +20,20 @@ class Board:
         self.actions = [(i, j) for i in range(LENGTH) for j in range(LENGTH)]
         self.x = -1
         self.o = 1
-        self.current_player_sign = self.x
+        self.current_player = self.x
         self.winner = None
         self.ended = False
-        self.invalid_moves = 0
-        self.s = str(self.reset().flatten())
+        self.wins = {}
 
     def reset(self):
         self.state = np.zeros((LENGTH, LENGTH), dtype=int)
-        self.current_player_sign = self.x
+        self.current_player = self.x
         self.winner = None
         self.ended = False
         return self.state
 
     def game_over(self):
         if self.ended:
-            self.winner = self.x if self.current_player_sign == self.o else self.o
             return True
 
         # rows
@@ -62,7 +60,7 @@ class Board:
                 return True
 
         # draw
-        if np.all((self.state == 0) == False):
+        if np.all(self.state != 0):
             self.winner = None
             self.ended = True
             return True
@@ -71,25 +69,23 @@ class Board:
 
     def move(self, action):
         if self.state[action] != 0:
-            # self.current_player_sign = self.x if self.current_player_sign == self.o else self.o
-            self.invalid_moves += 1
             self.ended = True
+            self.winner = self.x if self.current_player == self.o else self.o
             return -10  # Invalid move
 
-        self.state[action] = self.current_player_sign
-        reward = 0
+        self.state[action] = self.current_player
 
         if self.game_over():
-            if self.winner == self.current_player_sign:
+            if self.winner == self.current_player:
                 reward = 1
             elif self.winner is None:
-                reward = 0
+                reward = -0.1
             else:
                 reward = -1
         else:
             reward = 0
 
-        self.current_player_sign = self.x if self.current_player_sign == self.o else self.o
+        self.current_player = self.x if self.current_player == self.o else self.o
 
         return reward
 

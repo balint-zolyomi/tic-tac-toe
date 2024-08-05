@@ -3,8 +3,8 @@ import numpy as np
 
 import environment
 
-GAMMA = 0.8
-ALPHA = 0.1
+GAMMA = 0.9
+ALPHA = 0.2
 
 
 def max_dict(d):
@@ -13,61 +13,52 @@ def max_dict(d):
     return random.choice(max_keys), max_val
 
 
-def epsilon_greedy(Q, s, eps=0.1):
+def epsilon_greedy(Q, s, eps):
     if np.random.random() < eps:
         while True:
             a = random.choice(environment.ALL_POSSIBLE_ACTIONS)
             if Q[s][a] != -10:
                 return a
     else:
-        a = max_dict(Q[s])[0]
-        return a
+        return max_dict(Q[s])[0]
 
 
 class Player:
-    def __init__(self, board, sign):
-        self.Q = {str(board.state.flatten()): {a: 0 for a in board.actions}}
+    def __init__(self, board, sign, e):
+        self.Q = {tuple(board.state.flatten()): {a: 0 for a in board.actions}}
+        self.e = e
         self.sign = sign
         self.board = board
+        self.history = []
+
+    def set_eps(self, e):
+        self.e = e
+
+    def set_Q_values(self, s, a, target):
+        self.Q[s][a] = target
+        for hist_item in self.history[-2::-1]:
+            s_prev, a_prev = next(iter(hist_item.items()))
+            value = self.Q[s_prev][a_prev] + ALPHA * (GAMMA * target - self.Q[s_prev][a_prev])
+            self.Q[s_prev][a_prev] = value
+            target = value
 
     def move(self):
-        s = str(self.board.state.flatten())
+        s = tuple(self.board.state.flatten())
 
         if s not in self.Q:
             self.Q[s] = {a: 0 if self.board.state[a] == 0 else -10 for a in self.board.actions}
 
-        a = epsilon_greedy(self.Q, s)
+        a = epsilon_greedy(self.Q, s, self.e)
+        self.history.append({s: a})
         r = self.board.move(a)
-        s2 = str(self.board.state.flatten())
 
-        if s2 not in self.Q:
-            self.Q[s2] = {a: 0 for a in self.board.actions}
-
-        # episode_reward += r
-
-        maxQ = max_dict(self.Q[s2])[1]
-        self.Q[s][a] = self.Q[s][a] + ALPHA * (r + GAMMA * maxQ - self.Q[s][a])
+        target = r
+        if target in (1, -0.1, -10):
+            self.set_Q_values(s, a, target)
 
         return r
 
-    def print_policy(self):
-        policy = {}
-        V = {}
-
-        for s in self.Q.keys():
-            a, max_q = max_dict(self.Q[s])
-            policy[s] = a
-            V[s] = max_q
-
-        print("values:")
-        print(V)
-        print("policy:")
-        print(policy)
-
-        # while True:
-        #     board.draw_board()
-        #     a = policy[str(board.state.flatten())]
-        #     board.move(a)
-        #     if board.game_over():
-        #         board.draw_board()
-        #         break
+    def give_penalty(self, penalty):
+        target = penalty
+        s, a = next(iter(self.history[-1].items()))
+        self.set_Q_values(s, a, target)

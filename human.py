@@ -13,3 +13,5 @@ class Human:
             if self.board.state[i, j] == 0:
                 self.board.move(action)
                 break
+            else:
+                continue
