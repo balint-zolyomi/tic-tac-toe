@@ -69,7 +69,7 @@ class Player:
         else:
             s = tuple(state.flatten())
             if s not in self.Q:
-                self.Q[s] = {a: 0 if s[a] == 0 else -10 for a in self.board.actions}
+                self.Q[s] = {a: 0 if state[a] == 0 else -10 for a in self.board.actions}
             a = epsilon_greedy(self.Q, s, self.e)
             return a
 
