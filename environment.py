@@ -12,6 +12,13 @@ ALL_POSSIBLE_ACTIONS = (
     (2, 1),
     (2, 2),
 )
+AI_VS_RANDOM = "1. ai vs. random"
+CLONE_VS_RANDOM = "2. clone vs. random"
+AI_VS_CLONE = "3. ai vs. clone"
+DRAW = "draw"
+AI_MAIN = "ai main"
+AI_CLONE = "ai clone"
+AI_RANDOM = "ai random"
 
 
 class Board:
@@ -23,7 +30,12 @@ class Board:
         self.current_player = self.x
         self.winner = None
         self.ended = False
-        self.wins = {}
+        self.wins = {
+            DRAW: {AI_VS_RANDOM: 0, CLONE_VS_RANDOM: 0, AI_VS_CLONE: 0},
+            AI_CLONE: {CLONE_VS_RANDOM: 0, AI_VS_CLONE: 0},
+            AI_MAIN: {AI_VS_RANDOM: 0, AI_VS_CLONE: 0},
+            AI_RANDOM: {AI_VS_RANDOM: 0, CLONE_VS_RANDOM: 0}
+        }
 
     def reset(self):
         self.state = np.zeros((LENGTH, LENGTH), dtype=int)
@@ -88,20 +100,3 @@ class Board:
         self.current_player = self.x if self.current_player == self.o else self.o
 
         return reward
-
-    def draw_board(self):
-        num_rows, num_cols = self.state.shape
-
-        for row in range(num_rows):
-            print("+" + "-----+" * num_cols)
-            for item in range(num_cols):
-                print("|", end="")
-                if self.state[row, item] == self.x:
-                    print("  x  ", end="")
-                elif self.state[row, item] == self.o:
-                    print("  o  ", end="")
-                else:
-                    print("     ", end="")
-            print("|")
-        print("+" + "-----+" * num_cols)
-        print()

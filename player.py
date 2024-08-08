@@ -30,9 +30,17 @@ class Player:
         self.sign = sign
         self.board = board
         self.history = []
+        self.is_learning = True
+
+    def set_board(self, b):
+        self.board = b
 
     def set_eps(self, e):
         self.e = e
+
+    def set_is_learning(self, is_l):
+        self.is_learning = is_l
+        self.set_eps(0)
 
     def set_Q_values(self, s, a, target):
         self.Q[s][a] = target
@@ -42,21 +50,28 @@ class Player:
             self.Q[s_prev][a_prev] = value
             target = value
 
-    def move(self):
-        s = tuple(self.board.state.flatten())
+    def move(self, state=None):
+        if self.is_learning:
+            s = tuple(self.board.state.flatten())
 
-        if s not in self.Q:
-            self.Q[s] = {a: 0 if self.board.state[a] == 0 else -10 for a in self.board.actions}
+            if s not in self.Q:
+                self.Q[s] = {a: 0 if self.board.state[a] == 0 else -10 for a in self.board.actions}
 
-        a = epsilon_greedy(self.Q, s, self.e)
-        self.history.append({s: a})
-        r = self.board.move(a)
+            a = epsilon_greedy(self.Q, s, self.e)
+            self.history.append({s: a})
+            r = self.board.move(a)
 
-        target = r
-        if target in (1, -0.1, -10):
-            self.set_Q_values(s, a, target)
+            target = r
+            if target in (1, -0.1, -10):
+                self.set_Q_values(s, a, target)
 
-        return r
+            return r
+        else:
+            s = tuple(state.flatten())
+            if s not in self.Q:
+                self.Q[s] = {a: 0 if s[a] == 0 else -10 for a in self.board.actions}
+            a = epsilon_greedy(self.Q, s, self.e)
+            return a
 
     def give_penalty(self, penalty):
         target = penalty
