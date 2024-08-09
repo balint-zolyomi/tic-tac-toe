@@ -194,7 +194,7 @@ if __name__ == '__main__':
         st.write('''
             During learning, the agent decides how to act based on the epsilon-greedy policy. This
             means that it either chooses an optimal action or just explores its environment.
-            The Q-values are updated in a way to emphasize the optimal actions.
+            The Q-values are updated in a way to emphasize the optimal actions 🎯
         ''')
         st.write('''
             As you can see from the below chart, the agent was trained in 2 (+1) phases:
@@ -216,7 +216,7 @@ if __name__ == '__main__':
         ''')
         st.write(f'''
             Currently, you are playing against the same agent, who is not evolving (learning) during playing
-            with humans. Perhaps it doesn't even need to after playing {2 * EPISODES} episodes 😅
+            with humans. Perhaps it doesn't even need to after playing {2 * EPISODES} episodes 😅.
             Nevertheless, I have some cool development plans for the future!
         ''')
         st.write('''
