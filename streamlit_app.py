@@ -7,7 +7,7 @@ import time
 from environment import Board, AI_VS_RANDOM, CLONE_VS_RANDOM, AI_VS_CLONE, DRAW, AI_MAIN, AI_CLONE, AI_RANDOM
 from player import Player
 
-EPISODES = 1_000
+EPISODES = 100_000
 AI_PLAYER_EPS = 0.1
 AI_ENEMY_EPS = 0.1
 
@@ -184,8 +184,8 @@ if __name__ == '__main__':
 
     with st.expander("See explanation"):
         st.write('''
-            This project is about Reinforcement Learning (RL). RL can guide an agent on how
-            to interact with its environment based on rewards.
+            This project is about Reinforcement Learning (RL), and it was developed in plain Python.
+            RL can guide an agent on how to interact with its environment based on rewards.
             In this case, that guidance is offered through Q-learning:
         ''')
         st.latex(r'''Q(s_t, a_t) \leftarrow Q(s_t, a_t) + \alpha \left[ r_{t+1} + \gamma \max_{a'} Q(s_{t+1}, 
@@ -214,13 +214,10 @@ if __name__ == '__main__':
         st.write('''
             The agent received a reward of 1 for winning, -1 for loosing, and -0.1 for draw. 
         ''')
-        st.write('''
-            Although the wonderful thing about RL is the human-like evolving (learning) capability,
-            when you play against the agent, it won't learn anymore. For now, that is because of
-            implementation reasons (concurrency issues), but in the future, I plan to develop on that.
-        ''')
-        st.write('''
-            The project was developed in plain Python.
+        st.write(f'''
+            Currently, you are playing against the same agent, who is not evolving (learning) during playing
+            with humans. Perhaps it doesn't even need to after playing {2 * EPISODES} episodes 😅
+            Nevertheless, I have some cool development plans for the future!
         ''')
         st.write('''
             Enjoy playing! 🎮
