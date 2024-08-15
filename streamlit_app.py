@@ -98,25 +98,31 @@ def is_game_over(s):
     for i in range(3):
         if (np.all(s[i, :] == 1)
                 or np.all(s[:, i] == 1)):
-            st.session_state.message = LOOSE_MESSAGE
+            st.session_state.message = LOOSE_MESSAGE if st.session_state.ai == -1 else VICTORY_MESSAGE
             st.session_state.is_game_over = True
+            return True
         elif (np.all(s[i, :] == -1)
               or np.all(s[:, i] == -1)):
-            st.session_state.message = VICTORY_MESSAGE
+            st.session_state.message = VICTORY_MESSAGE if st.session_state.ai == -1 else LOOSE_MESSAGE
             st.session_state.is_game_over = True
+            return True
     if (np.all(np.diag(s) == 1)
             or np.all(np.diag(np.fliplr(s)) == 1)):
-        st.session_state.message = LOOSE_MESSAGE
+        st.session_state.message = LOOSE_MESSAGE if st.session_state.ai == -1 else VICTORY_MESSAGE
         st.session_state.is_game_over = True
+        return True
     elif (np.all(np.diag(s) == -1)
           or np.all(np.diag(np.fliplr(s)) == -1)):
-        st.session_state.message = VICTORY_MESSAGE
+        st.session_state.message = VICTORY_MESSAGE if st.session_state.ai == -1 else LOOSE_MESSAGE
         st.session_state.is_game_over = True
-    elif np.all(s != 0):
+        return True
+
+    if np.all(s != 0):
         st.session_state.message = random.choice(DRAW_MESSAGE)
         st.session_state.is_game_over = True
+        return True
 
-    return st.session_state.is_game_over
+    return False
 
 
 def show_chat(text):
@@ -127,14 +133,13 @@ def show_chat(text):
 def move(i, j):
     st.session_state.message = ""
     if not st.session_state.is_game_over and st.session_state.board.state.T[i, j] == 0:
-        st.session_state.board.state.T[i, j] = st.session_state.board.o
-        if st.session_state.board.current_player == st.session_state.board.o:
-            st.session_state.board.current_player = st.session_state.board.x
-        else:
-            st.session_state.board.current_player = st.session_state.board.o
+        st.session_state.board.state.T[i, j] = st.session_state.human
         if not is_game_over(st.session_state.board.state):
-            action = ai_player.move(st.session_state.board.state)
-            st.session_state.board.state[action] = st.session_state.board.x
+            if st.session_state.ai == st.session_state.board.x:
+                action = ai_player.move(st.session_state.board.state)
+            else:
+                action = ai_enemy.move(st.session_state.board.state)
+            st.session_state.board.state[action] = st.session_state.ai
     elif st.session_state.is_game_over:
         st.session_state.message = INVALID_INPUT_GAME_OVER_MESSAGE
     else:
@@ -148,6 +153,8 @@ if __name__ == '__main__':
     if 'init' not in st.session_state:
         if st.session_state.get('board'):
             del st.session_state.board
+        ai_player.set_is_learning(False)
+        ai_enemy.set_is_learning(False)
         st.toast('Mobile users should view in landscape mode', icon="📱")
         st.session_state.init = True
 
@@ -156,10 +163,26 @@ if __name__ == '__main__':
 
     if 'board' not in st.session_state:
         st.session_state.board = Board()
-        st.session_state.board.current_player = st.session_state.board.x
-        ai_player.set_is_learning(False)
-        initial_action = ai_player.move(st.session_state.board.state)
-        st.session_state.board.state[initial_action] = st.session_state.board.x
+
+        if 'human' not in st.session_state:
+            st.session_state.human = st.session_state.board.o
+        if 'ai' not in st.session_state:
+            st.session_state.ai = st.session_state.board.x
+
+    with st.expander("Select your sign"):
+        player_sign = st.radio(
+            "('X' starts)",
+            ["O", "X"],
+            on_change=reset,
+            disabled=False
+        )
+
+        st.session_state.human = 1 if player_sign == "O" else -1
+        st.session_state.ai = -1 if player_sign == "O" else 1
+
+        if st.session_state.ai == -1 and np.all(st.session_state.board.state == 0):
+            initial_action = ai_player.move(st.session_state.board.state)
+            st.session_state.board.state[initial_action] = st.session_state.ai
 
     st.write(" ")
 
